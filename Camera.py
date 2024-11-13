@@ -46,7 +46,7 @@ def do_animation():
 
     x = env.width()-serverCapacity*xvisitor_dim
     x -= (pipeCapacity + 5) * xvisitor_dim #减去的值等于信道长度
-    xsign = x #显示楼层数字的位置
+    xsign = x #显示编号的位置
     x -= xvisitor_dim / 2
     for direction in (up, down):
         x -= xvisitor_dim / 2
@@ -402,9 +402,6 @@ still = 0
 down = -1
 
 visitor_num=1
-# move_time_1 = 20
-# move_time_2 = 40
-# move_time_3 = 60
 dooropen_time = 3
 doorclose_time = 3
 enter_time = 3
