@@ -7,6 +7,9 @@ from typing import TypedDict
 CAMERA_ACTIVE_TIME=20
 CAMERA_SLEEP_TIME=50
 CAMERA_POS_Y_OFFSET=10
+#照片素材的绘制尺寸信息
+XVISITOR_DIM=40
+YVISITOR_DIM=40
 
 #服务器位置
 SERVER_POS_Y_OFFSET=30
@@ -31,16 +34,15 @@ CAMERA_COLOR_2_STRING = {
     Camera_color.Red: "red",
     Camera_color.Gray :"50%gray"
 }
+class ImageInput(TypedDict):
+    path: str
 #绘制画面的主要逻辑
 def do_animation():
 
-    #照片素材的绘制尺寸信息
-    global xvisitor_dim
-    global yvisitor_dim
+
 
     #调整各类容量上限的参数信息
-    global capacity_last, nPipes_last, maxpath_last
-    global visitor_num
+    # global capacity_last, nPipes_last, maxpath_last
 
     #env.modelname("Elevator")
     env.speed(32)
@@ -48,8 +50,6 @@ def do_animation():
     # if make_video:
     #     env.video("Elevator.mp4")
 
-    xvisitor_dim = 40
-    yvisitor_dim = xvisitor_dim
 
     #路径的绘制基准位置
     ypath0 = 300
@@ -60,55 +60,55 @@ def do_animation():
     cams = []
     
     #通过设置的尺寸和容量得到初始生成点的位置信息
-    x = env.width()-serverCapacity*xvisitor_dim-SERVER_TO_PAINTER_PATH-painterCapacity*xvisitor_dim
-    x -= (pipeCapacity + 5) * xvisitor_dim #减去的值等于信道长度
+    x = env.width()-serverCapacity*XVISITOR_DIM-SERVER_TO_PAINTER_PATH-painterCapacity*XVISITOR_DIM
+    x -= (pipeCapacity + 5) * XVISITOR_DIM #减去的值等于信道长度
     xsign = x #显示编号的位置
-    x -= xvisitor_dim / 2
+    x -= XVISITOR_DIM / 2
     for direction in (up, down):
-        x -= xvisitor_dim / 2
+        x -= XVISITOR_DIM / 2
         xled[direction] = x
-    x -= xvisitor_dim
+    x -= XVISITOR_DIM
     xwait = x #指示灯的位置
     #对每个路径都进行位置计算和绘制
     for path in paths:
-        y = ypath0 + path.n * yvisitor_dim*1.5
+        y = ypath0 + path.n * YVISITOR_DIM*1.5
         path.y = y
-        b = xvisitor_dim / 4
+        b = XVISITOR_DIM / 4
         cam=Camera(x=xled[up],y=y,b=b)#生成一个摄像头和通路绑定
         path.setCam(cam=cam)
         cams.append(cam)
         sim.AnimateLine(x=0, y=y, spec=(0, 0, xwait, 0))
-        sim.AnimateText(x=xsign, y=y, text=str(path.n), fontsize=xvisitor_dim / 2)
+        sim.AnimateText(x=xsign, y=y, text=str(path.n), fontsize=XVISITOR_DIM / 2)
 
-        sim.AnimateQueue(queue=path.visitors, x=xwait - xvisitor_dim, y=path.y, direction="w", title="")
+        sim.AnimateQueue(queue=path.visitors, x=xwait - XVISITOR_DIM, y=path.y, direction="w", title="")
 
     #对每条路径的数据传输管道进行位置计算和绘制
     for Pipe in Pipes:
-        x = xsign+xvisitor_dim
+        x = xsign+XVISITOR_DIM
         Pipe.setStartx(x=x)
-        y = ypath0 + Pipe.n * yvisitor_dim*1.5
+        y = ypath0 + Pipe.n * YVISITOR_DIM*1.5
         Pipe.pic = sim.AnimateRectangle(
-            x=Pipe.x, y=y, spec=(0, 0, pipeCapacity * xvisitor_dim, yvisitor_dim), fillcolor="lightblue", linewidth=0
+            x=Pipe.x, y=y, spec=(0, 0, pipeCapacity * XVISITOR_DIM, YVISITOR_DIM), fillcolor="lightblue", linewidth=0
         )
         sim.AnimateQueue(queue=Pipe.visitors, x=Pipe.x, y=y, direction="e", title="", arg=Pipe,reverse=True)
 
     #对服务器的位置进行计算和绘制
     for Server in Servers:
-        offset=xvisitor_dim*serverCapacity+xvisitor_dim*painterCapacity+SERVER_TO_PAINTER_PATH
+        offset=XVISITOR_DIM*serverCapacity+XVISITOR_DIM*painterCapacity+SERVER_TO_PAINTER_PATH
         x = env.width()-offset
-        y = ypath0 + Server.n * yvisitor_dim*1.5
+        y = ypath0 + Server.n * YVISITOR_DIM*1.5
         Server.pip = sim.AnimateRectangle(
-            x=x, y=y+SERVER_POS_Y_OFFSET, spec=(0, 0, serverCapacity * xvisitor_dim, yvisitor_dim), fillcolor="gray", linewidth=0
+            x=x, y=y+SERVER_POS_Y_OFFSET, spec=(0, 0, serverCapacity * XVISITOR_DIM, YVISITOR_DIM), fillcolor="gray", linewidth=0
         )
         sim.AnimateQueue(queue=Server.visitors, x=x, y=y+SERVER_POS_Y_OFFSET, direction="e", title="", arg=Pipe,reverse=True)
     nPipes_last = nPipes
 
     #对Painter的位置进行计算和绘制
     for Painter in Painters:
-        x = env.width()-xvisitor_dim*painterCapacity
-        y = ypath0 + Painter.n * yvisitor_dim*1.5
+        x = env.width()-XVISITOR_DIM*painterCapacity
+        y = ypath0 + Painter.n * YVISITOR_DIM*1.5
         Painter.pip = sim.AnimateRectangle(
-            x=x, y=y+SERVER_POS_Y_OFFSET, spec=(0, 0, painterCapacity * xvisitor_dim, yvisitor_dim), fillcolor="gray", linewidth=0
+            x=x, y=y+SERVER_POS_Y_OFFSET, spec=(0, 0, painterCapacity * XVISITOR_DIM, YVISITOR_DIM), fillcolor="gray", linewidth=0
         )
         sim.AnimateQueue(queue=Painter.pictures, x=x, y=y+SERVER_POS_Y_OFFSET, direction="e", title="", arg=Pipe,reverse=True)
     nPipes_last = nPipes
@@ -158,7 +158,6 @@ def do_animation():
     #     action=set_capacity,
     #     xy_anchor="nw",
     # )
-
 
 #同上
 # def set_capacity(val):
@@ -280,14 +279,11 @@ class VisitorGenerator(sim.Component):
 #             return DeviceState.Warning
 #         else :
 #             return state
-
-class ImageInput(TypedDict):
-    path: str
     
 class Visitor(sim.Component):
+    visitor_num=1
     def setup(self, from_, to):
         self.state = 2
-        self.img = Image.open("test.jpg")
         self.frompath = paths[from_]
         #输入路径的当前数据包数量
         paths[from_].vnum +=  1
@@ -295,31 +291,38 @@ class Visitor(sim.Component):
         self.to=to
         self.direction = getdirection(self.frompath, self.topath)
         self.setVisitornum()
+        img_path=self.gen_img()
+        self.img = Image.open(img_path['path'])
+    def gen_img(self):
+        base_path="img/"
+        num = self.visitor_num %2+1
+        file_name=f"test{num}.jpg"
+        image_info: ImageInput = {"path":base_path+file_name}
+        return image_info
+
     def setVisitornum(self):
-        global visitor_num #设置一个全局的数据计数标记
-        self.num=visitor_num
-        visitor_num+=1
+        self.num=self.visitor_num
+        self.__class__.visitor_num+=1
     def animation_objects(self, q):#决定了在队列中的动画展现方式
-        size_x = xvisitor_dim
-        size_y = yvisitor_dim
-        b = 0.1 * xvisitor_dim
-        img=Image.open("test.jpg")
+        size_x = XVISITOR_DIM
+        size_y = YVISITOR_DIM
+        b = 0.1 * XVISITOR_DIM
         if self.state == 1:
             an0 = sim .AnimateImage(
-                image=img,
-                x=xvisitor_dim-b,
-                y=yvisitor_dim-b,
+                image=self.img,
+                x=XVISITOR_DIM-b,
+                y=YVISITOR_DIM-b,
                 width=50,
                 height=50,
             )
         else:
             an0 = sim.AnimateRectangle(
-                spec=(b, 2, xvisitor_dim - b, yvisitor_dim - b),
+                spec=(b, 2, XVISITOR_DIM - b, YVISITOR_DIM - b),
                 linewidth=0,
                 fillcolor="Green",
                 # text=str(self.topath.n),
                 text=str(self.num),
-                fontsize=xvisitor_dim * 0.7,
+                fontsize=XVISITOR_DIM * 0.7,
                 textcolor="white",
             )
         return size_x, size_y, an0
@@ -353,15 +356,15 @@ class Picture(sim.Component):
         self.img =img
         self.painter = Painters[from_]
     def animation_objects(self, q):#决定了在队列中的动画展现方式
-        size_x = xvisitor_dim
-        size_y = yvisitor_dim
-        b = 0.1 * xvisitor_dim
+        size_x = XVISITOR_DIM
+        size_y = YVISITOR_DIM
+        b = 0.1 * XVISITOR_DIM
         an0 = sim .AnimateImage(
             image=self.img,
-            x=xvisitor_dim-b,
-            y=yvisitor_dim-b,
-            width=xvisitor_dim,
-            height=yvisitor_dim,
+            x=XVISITOR_DIM-b,
+            y=YVISITOR_DIM-b,
+            width=XVISITOR_DIM,
+            height=YVISITOR_DIM,
         )
         return size_x, size_y, an0
 
@@ -399,7 +402,6 @@ class Server(sim.Component):
 
 class Pipe(sim.Component):
     def setup(self,n):
-        global xvisitor_dim
         
         self.capacity = pipeCapacity
         self.dest=dest
@@ -417,7 +419,7 @@ class Pipe(sim.Component):
         
         #设置管道移动的起点和终点
         self.Startx=0
-        offset=pipeCapacity*xvisitor_dim+serverCapacity*xvisitor_dim+SERVER_TO_PAINTER_PATH+painterCapacity*xvisitor_dim
+        offset=pipeCapacity*XVISITOR_DIM+serverCapacity*XVISITOR_DIM+SERVER_TO_PAINTER_PATH+painterCapacity*XVISITOR_DIM
         self.destx = env.width()-offset
     
     def setStartx(self,x):
@@ -507,7 +509,6 @@ up = 1
 still = 0
 down = -1
 
-visitor_num=1
 
 dooropen_time = 3
 doorclose_time = 3
@@ -525,7 +526,7 @@ maxpath =2
 nPipes = maxpath+1
 nServers = maxpath
 nPainters= maxpath
-xvisitor_dim = 40
+XVISITOR_DIM = 40
 while True:
     env = sim.Environment(trace=False)
 
